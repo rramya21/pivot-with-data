@@ -5,11 +5,11 @@ Solving real-world problems using data, analysis, and automation workflows.
 This is my personal data portfolio where I explore practical business questions using tools like Excel, SQL, and automation platforms such as n8n. 
 The goal is to build thoughtful, real-world projects that show how data can be used to uncover insights and improve decision-making.
 
-## What's included (or coming soon)
+## What's included 
 
 - SQL files for answering business questions and exploring patterns (e.g., churn, retention, customer segments)
-- Excel dashboards using pivot tables, charts, and conditional formatting
-- Automation workflows using n8n to streamline reporting or data tasks
+- Excel dashboards using pivot tables, charts, and conditional formatting (Coming Soon)
+- Automation workflows using n8n to streamline reporting or data tasks (Coming Soon)
 
 ## Projects (coming together)
 

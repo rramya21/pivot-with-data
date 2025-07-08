@@ -11,8 +11,12 @@ The goal is to build thoughtful, real-world projects that show how data can be u
 - Excel dashboards using pivot tables, charts, and conditional formatting
 - Automation workflows using n8n to streamline reporting or data tasks
 
-## Project structure (coming together)
-> Currently, the first SQL project is available. More content will be added over time.
+## Projects (coming together)
+
+### Netflix Churn Analysis (SQL)
+- 📄 [`netflix_churn_analysis.sql`](./sql/netflix_churn_analysis.sql)
+- Focus: Identifying churned users, calculating churn rate, and exploring user behavior.
+- Tools: MySQL
 
 
 ## Tools used

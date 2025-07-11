@@ -1,0 +1,296 @@
+-- ====================================
+-- 📊 Crypto Sentiment Analysis Project
+-- ====================================
+
+-- 🔹 Step 1: Data Cleaning
+-- 🔹 Step 2: Exploratory Questions
+-- 🔹 Step 3: Correlation Insights
+-- 🔹 Step 4: Sentiment vs Market Patterns
+-- 🔹 Step 5: High/Low Confidence Analysis
+
+-- DataSet Source: Kaggle Dataset: Crypto sentiment prediction dataset
+
+RENAME TABLE crypto_sentiment_prediction_dataset TO crypto_sentiment;
+
+SELECT *
+FROM crypto_sentiment;
+
+-- 1 Check for duplicates
+
+SELECT timestamp, cryptocurrency, COUNT(*) AS count
+FROM crypto_sentiment
+GROUP BY timestamp, cryptocurrency
+HAVING count > 1;
+
+-- Explanation: No Duplicates
+
+-- Find Nulls
+
+SELECT
+  SUM(CASE WHEN current_price_usd IS NULL THEN 1 ELSE 0 END) AS null_price,
+  SUM(CASE WHEN social_sentiment_score IS NULL THEN 1 ELSE 0 END) AS null_sentiment,
+  SUM(CASE WHEN prediction_confidence IS NULL THEN 1 ELSE 0 END) AS null_confidence,
+  SUM(CASE WHEN rsi_technical_indicator IS NULL THEN 1 ELSE 0 END) AS null_rsi
+FROM crypto_sentiment;
+
+-- Explanation - No Nulls
+
+-- 1. What is the total number of rows in the dataset?
+
+SELECT *
+FROM  crypto_sentiment;
+
+-- Explanation 2063 rows exist.
+
+-- 2. How many unique cryptocurrencies are in the data?
+
+SELECT COUNT(DISTINCT cryptocurrency) AS unique_cryptos 
+FROM crypto_sentiment;
+
+-- Explanation: There are 10 unique cryptos in the dataset
+
+-- 3. What is the minimum, maximum, and average current price across all cryptos?
+
+SELECT 
+  MIN(current_price_usd) AS min_price,
+  MAX(current_price_usd) AS max_price,
+  AVG(current_price_usd) AS avg_price
+FROM crypto_sentiment;
+
+-- Answer: min_price: 0.2987	max_price: 51610.9232	 avg_price: 4260.360520067868
+
+-- 4. How many rows are missing social_sentiment_score?
+
+SELECT 
+  SUM(CASE WHEN social_sentiment_score IS NULL THEN 1 ELSE 0 END) AS null_sentiments
+FROM crypto_sentiment;
+
+-- Answer: There are no missing social_sentiment_score.
+
+-- 5. What is the average RSI value for each cryptocurrency?
+-- Explanantion: The Relative Strength Index (RSI) is a widely used momentum oscillator in cryptocurrency trading. 
+-- It helps traders assess whether an asset is overbought or oversold, potentially indicating an upcoming price reversal. 
+
+SELECT cryptocurrency, ROUND(AVG(rsi_technical_indicator),2) as rsi_avg
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+ORDER BY rsi_avg DESC;
+
+-- Answer: Avalanche	52.2
+-- Bitcoin	52.07
+-- Chainlink	51.18
+-- Algorand	51.15
+-- Ethereum	50.62
+-- Polygon	50.61
+-- Polkadot	49.67
+-- Solana	49.53
+-- Cardano	49.04
+-- Cosmos	48.91
+
+-- 6. Which coin had the highest trading volume ever recorded?
+
+SELECT cryptocurrency, trading_volume_24h
+FROM crypto_sentiment
+ORDER BY trading_volume_24h DESC
+LIMIT 1;
+
+-- answer: Cardano	140292456.26
+
+-- 7. Bucket prediction confidence into levels (High/Medium/Low). How many rows fall into each?
+
+SELECT
+	CASE
+    WHEN prediction_confidence >= 80 THEN 'High'
+    WHEN prediction_confidence >= 50 THEN 'Low'
+    ELSE 'Low'
+    END as confidence_level,
+    COUNT(*) AS count
+FROM crypto_sentiment
+GROUP BY confidence_level;
+
+-- Answer: Low	1417  High	646
+
+-- 8. What’s the average 24h price change for positive vs. negative sentiment?
+-- Why: To check if sentiment impacts price.
+
+SELECT 
+  CASE 
+    WHEN social_sentiment_score > 0 THEN 'Positive'
+    WHEN social_sentiment_score < 0 THEN 'Negative'
+    ELSE 'Neutral'
+  END AS sentiment_type,
+  ROUND(AVG(price_change_24h_percent), 2) AS avg_price_change
+FROM crypto_sentiment
+GROUP BY sentiment_type;
+
+-- Answer: Positive	-0.09 Negative	0.06  Neutral	-3.73
+
+-- 9. Is there a correlation between rsi_technical_indicator and price_change_24h_percent?
+-- Why: To explore RSI's predictive power.
+
+-- Check in Excel
+
+-- 10. Compare trading volume between top 3 and bottom 3 coins by sentiment score.
+-- Why: See if social sentiment drives volume.
+
+
+(SELECT 
+   cryptocurrency, 
+   AVG(social_sentiment_score) AS avg_sentiment,
+   AVG(trading_volume_24h) AS avg_volume,
+   'Top 3' AS sentiment_rank
+ FROM crypto_sentiment
+ GROUP BY cryptocurrency
+ ORDER BY avg_sentiment DESC
+ LIMIT 3)
+ 
+ 
+UNION ALL
+
+(SELECT 
+  cryptocurrency,
+  AVG(social_sentiment_score) AS avg_sentiment,
+  AVG(trading_volume_24h) AS avg_volume,
+  'Bottom 3' AS sentiment_rank
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+ORDER BY avg_sentiment ASC
+LIMIT 3);
+
+-- Explanation use Union all to identify top 3 and bottom 3
+
+-- Cosmos	0.03747572815533981	6171149.125339809	Top 3
+-- Algorand	0.0352722772277228	5548879.537326728	Top 3
+-- Solana	0.029246231155778877	5858211.567939694	Top 3
+-- Avalanche	-0.015000000000000008	5318790.457194574	Bottom 3
+-- Polygon	-0.01489861751152074	5316037.8835023055	Bottom 3
+-- Bitcoin	-0.012938202247191024	7306229.0183146065	Bottom 3
+
+
+-- 11. Which coin has the highest average price increase?
+-- Why: To find best performers.
+
+SELECT cryptocurrency, ROUND (AVG(price_change_24h_percent),2) AS avg_price_change
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+ORDER BY avg_price_change DESC
+LIMIT 1;
+
+-- Bitcoin	0.87 has had the hifhest average price increase.
+
+
+-- 12. Compare average RSI between coins with confidence level > 80 and < 50.
+-- Why: To test if prediction confidence matches market signal.
+
+SELECT 
+  CASE 
+    WHEN prediction_confidence > 80 THEN 'High'
+    WHEN prediction_confidence < 50 THEN 'Low'
+  END AS confidence_group,
+  ROUND(AVG(rsi_technical_indicator), 2) AS avg_rsi
+FROM crypto_sentiment
+WHERE prediction_confidence > 80 OR prediction_confidence < 50
+GROUP BY confidence_group;
+
+-- Answer: High 50.28
+
+
+-- 13. Does higher sentiment score lead to more social mentions?
+
+SELECT 
+  ROUND(AVG(social_mentions_count)) AS avg_mentions,
+  CASE 
+    WHEN social_sentiment_score > 0 THEN 'Positive'
+    WHEN social_sentiment_score < 0 THEN 'Negative'
+    ELSE 'Neutral'
+  END AS sentiment_type
+FROM crypto_sentiment
+GROUP BY sentiment_type;
+
+-- Answer  1180	Positive  1259	Negative  577	Neutral
+
+
+-- 14. What time of day sees the highest average price change?
+
+SELECT 
+  HOUR(timestamp) AS hour_of_day,
+  ROUND(AVG(price_change_24h_percent), 2) AS avg_price_change
+FROM crypto_sentiment
+GROUP BY hour_of_day
+ORDER BY avg_price_change DESC;
+
+-- Hour 8 sees the highest average price change
+
+-- 15. Which cryptocurrency has the highest average prediction confidence?
+SELECT cryptocurrency, 
+       ROUND(AVG(prediction_confidence), 2) AS avg_confidence
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+ORDER BY avg_confidence DESC
+LIMIT 1;
+
+-- Answer: Avalanche has the highest average prediction confidence at 77.96
+
+-- 16. How often do confidence scores fall below 30?
+
+SELECT COUNT(*) AS low_confidence_count
+FROM crypto_sentiment
+WHERE prediction_confidence < 30;
+
+-- Answer: There are no low confidecne score below  30.
+
+
+--  17. Which coin has the lowest average sentiment but highest average price?
+
+-- Explanatin : We want to find the coin that people don’t talk positively about (low sentiment) but still has a very high price.
+SELECT cryptocurrency, 
+       ROUND(AVG(social_sentiment_score), 2) AS avg_sentiment,
+       ROUND(AVG(current_price_usd), 2) AS avg_price
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+ORDER BY avg_sentiment ASC, avg_price DESC
+LIMIT 1;
+
+-- Answer: Avalanche has lowest average sentiment score and highest average price.alter
+
+
+-- 18. Compare social mentions between coins with high vs low RSI
+-- Explanantuion: We want to know if coins that are overbought (RSI > 70) or oversold (RSI < 30) get more attention (measured by social mentions).
+
+SELECT 
+  CASE 
+    WHEN rsi_technical_indicator > 70 THEN 'High RSI'
+    WHEN rsi_technical_indicator < 30 THEN 'Low RSI'
+    ELSE 'Normal'
+  END AS rsi_group,
+  ROUND(AVG(social_mentions_count), 0) AS avg_mentions
+FROM crypto_sentiment
+GROUP BY rsi_group;
+
+--  Answer: Low RSI	1368 Normal	1216 High RSI	1125
+-- Oversold Coins get more social mentions
+
+-- 19  Are high-confidence predictions more accurate?
+-- We’re checking if high-confidence predictions (confidence > 80%) actually have better price performance than low-confidence ones (< 50%).
+
+SELECT 
+  CASE 
+    WHEN prediction_confidence > 80 THEN 'High'
+    WHEN prediction_confidence < 50 THEN 'Low'
+  END AS confidence_level,
+  ROUND(AVG(price_change_24h_percent), 2) AS avg_price_change
+FROM crypto_sentiment
+WHERE prediction_confidence > 80 OR prediction_confidence < 50
+GROUP BY confidence_level;
+
+-- Answer: Hig at 0.18. This means only high confidence predictions exist in the dataset. Which means we don't know if low confidence predictions exists and hence cannot conclude.
+
+-- 20. Which coins show opposite trends in sentiment vs price?
+SELECT cryptocurrency,
+       ROUND(AVG(social_sentiment_score), 2) AS avg_sentiment,
+       ROUND(AVG(price_change_24h_percent), 2) AS avg_price_change
+FROM crypto_sentiment
+GROUP BY cryptocurrency
+HAVING avg_sentiment < 0 AND avg_price_change > 0;
+
+-- answer: Bitcon showed opposite trends in sentiment vs price.

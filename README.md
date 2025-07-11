@@ -13,11 +13,21 @@ The goal is to build thoughtful, real-world projects that show how data can be u
 
 ## Projects (coming together)
 
-### Netflix Churn Analysis (SQL)
+### Netflix Churn Analysis (MYSQL)
 - 📄 [`netflix_churn_analysis.sql`](./sql/netflix_churn_analysis.sql)
+- DataSet: Netflix Chrun Analysis (Data Source: Kaggle)
 - Focus: Identifying churned users, calculating churn rate, and exploring user behavior.
-- Tools: MySQL
+- What’s included: SQL questions and insights (20+)
+- Key skills demonstrated: SQL
 
+
+### Crypto Sentiment Prediction Analysis (MYSQL)
+- 📄 [`crypto_sentiment_prediction_analysis.sql`](./sql/crypto_sentiment_prediction_analysis.sql)
+- Dataset: Crypto sentiment prediction dataset (Data source: Kaggle)
+- Tech Stack: MySQL for data analysis
+- Focus: Explore whether social sentiment and prediction confidence align with price movements
+- What’s included: SQL questions and insights (20+), EDA, pattern mining, sentiment vs price behavior
+- Key skills demonstrated: SQL, EDA, data storytelling, market pattern interpretation
 
 ## Tools used
 
